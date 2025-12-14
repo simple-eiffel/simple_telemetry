@@ -130,10 +130,10 @@ feature -- Access
 			Result := context.parent_span_id
 		end
 
-	start_time: DATE_TIME
+	start_time: SIMPLE_DATE_TIME
 			-- When span started.
 
-	end_time: detachable DATE_TIME
+	end_time: detachable SIMPLE_DATE_TIME
 			-- When span ended (Void if still active).
 
 	attributes: HASH_TABLE [ANY, STRING]
@@ -168,7 +168,7 @@ feature -- Status
 	duration_ms: INTEGER_64
 			-- Duration in milliseconds (0 if not ended).
 		local
-			l_end: DATE_TIME
+			l_end: SIMPLE_DATE_TIME
 		do
 			if attached end_time as et then
 				l_end := et
@@ -342,13 +342,10 @@ feature -- Conversion
 
 feature {NONE} -- Implementation
 
-	duration_between (a_start, a_end: DATE_TIME): INTEGER_64
+	duration_between (a_start, a_end: SIMPLE_DATE_TIME): INTEGER_64
 			-- Milliseconds between two times.
-		local
-			l_duration: DATE_TIME_DURATION
 		do
-			l_duration := a_end.relative_duration (a_start)
-			Result := l_duration.seconds_count * 1000 + l_duration.date.day * 86400000
+			Result := (a_end.to_timestamp - a_start.to_timestamp) * 1000
 		end
 
 invariant

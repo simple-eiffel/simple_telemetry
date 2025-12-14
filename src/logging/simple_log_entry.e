@@ -52,7 +52,7 @@ feature -- Access
 	message: STRING
 			-- Log message.
 
-	timestamp: DATE_TIME
+	timestamp: SIMPLE_DATE_TIME
 			-- When log was created.
 
 	attributes: HASH_TABLE [ANY, STRING]

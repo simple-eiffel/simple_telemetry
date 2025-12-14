@@ -43,7 +43,7 @@ feature -- Access
 	name: STRING
 			-- Event name.
 
-	timestamp: DATE_TIME
+	timestamp: SIMPLE_DATE_TIME
 			-- When event occurred.
 
 	attributes: HASH_TABLE [ANY, STRING]

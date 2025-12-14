@@ -202,13 +202,13 @@ feature {NONE} -- Implementation
 		local
 			l_random: RANDOM
 			l_seed: INTEGER
-			l_time: TIME
+			l_dt: SIMPLE_DATE_TIME
 			i: INTEGER
 			l_counter: INTEGER
 		do
-			create l_time.make_now
+			create l_dt.make_now
 			l_counter := shared_id_counter.item
-			l_seed := l_time.milli_second + l_time.second * 1000 + l_counter
+			l_seed := (l_dt.to_timestamp \\ 1000000).as_integer_32 + l_counter
 			shared_id_counter.put (l_counter + 1)
 			create l_random.set_seed (l_seed)
 			l_random.forth
