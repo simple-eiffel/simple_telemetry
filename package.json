@@ -1,0 +1,9 @@
+{
+  "name": "simple_telemetry",
+  "version": "0.1.0",
+  "description": "Distributed tracing, metrics, and structured logging library",
+  "author": "Larry Rix",
+  "license": "MIT",
+  "category": "scheduling",
+  "keywords": ["telemetry", "metrics", "tracing"]
+}
