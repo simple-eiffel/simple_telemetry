@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple_telemetry - Observability for Eiffel</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="simple_* logo" class="logo">
+        </div>
+        <h1>simple_telemetry</h1>
+        <p class="tagline">Observability for Eiffel</p>
+        <div class="badges">
+            <span class="badge badge-version">v1.0.0</span>
+            <span class="badge badge-license">MIT</span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="https://github.com/simple-eiffel/simple_telemetry">GitHub</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>
+                <strong>simple_telemetry</strong> provides distributed observability for Eiffel applications
+                including tracing with span context, metrics collection, and structured logging with correlation IDs.
+                Designed for OpenTelemetry compatibility.
+            </p>
+            <p>Part of the <a href="https://github.com/simple-eiffel">Simple Eiffel</a> ecosystem.</p>
+
+            <div class="quick-start">
+                <h3>Quick Start</h3>
+                <pre><code><span class="keyword">local</span>
+    telemetry: <span class="type">SIMPLE_TELEMETRY</span>
+    span: <span class="type">SIMPLE_SPAN</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> telemetry.make
+    span := telemetry.start_span (<span class="string">"process_order"</span>)
+    <span class="comment">-- ... do work ...</span>
+    span.finish
+<span class="keyword">end</span></code></pre>
+            </div>
+        </section>
+
+        <section id="features">
+            <h2>Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Distributed Tracing</h4>
+                    <p>Spans with trace context propagation across services</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Metrics</h4>
+                    <p>Counters, gauges, and histograms for application metrics</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Structured Logging</h4>
+                    <p>JSON logs with correlation IDs and context</p>
+                </div>
+                <div class="feature-card">
+                    <h4>OpenTelemetry Compatible</h4>
+                    <p>Follows OpenTelemetry conventions and data model</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2>Installation</h2>
+            <pre><code><span class="comment"># Set environment variable</span>
+export SIMPLE_TELEMETRY=/path/to/simple_telemetry
+
+<span class="comment"># Add to ECF</span>
+&lt;library name="simple_telemetry" location="$SIMPLE_TELEMETRY/simple_telemetry.ecf"/&gt;</code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 simple_* ecosystem. MIT License.</p>
+        <p>
+            <a href="https://github.com/simple-eiffel/simple_telemetry">GitHub</a> |
+            <a href="https://simple-eiffel.github.io">Documentation</a>
+        </p>
+    </footer>
+</body>
+</html>
