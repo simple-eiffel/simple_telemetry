@@ -46,14 +46,14 @@ end
 
 ## Installation
 
-1. Set environment variable:
+1. Set the ecosystem environment variable (one-time setup for all simple_* libraries):
 ```bash
-export SIMPLE_TELEMETRY=/path/to/simple_telemetry
+export SIMPLE_EIFFEL=/path/to/prod
 ```
 
 2. Add to ECF:
 ```xml
-<library name="simple_telemetry" location="$SIMPLE_TELEMETRY/simple_telemetry.ecf"/>
+<library name="simple_telemetry" location="$SIMPLE_EIFFEL/simple_telemetry/simple_telemetry.ecf"/>
 ```
 
 ## Dependencies
