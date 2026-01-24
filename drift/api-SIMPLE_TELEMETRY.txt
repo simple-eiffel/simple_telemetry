@@ -1,0 +1,407 @@
+note
+	description: "[
+				Unified telemetry facade providing tracing, metrics, and logging.
+		
+				simple_telemetry provides the three pillars of observability:
+				- Tracing: Distributed request tracking via spans
+				- Metrics: Counters, gauges, and histograms
+				- Logging: Structured logs with trace correlation
+		
+				W3C Trace Context compatible for distributed tracing.
+		
+				Usage:
+					telemetry := create {SIMPLE_TELEMETRY}.make ("my-service")
+		
+					-- Tracing
+					span := telemetry.tracer.start_span ("operation")
+					span.set_attribute ("user_id", "123")
+					span.end_span
+		
+					-- Metrics
+					telemetry.meter.new_counter ("requests").increment
+					telemetry.meter.new_histogram ("latency_ms").record (42)
+		
+					-- Logging (auto-correlates with current span)
+					telemetry.logger.info ("Processing request")
+	]"
+	author: "Larry Rix"
+	date: "$Date$"
+	revision: "$Revision$"
+
+class interface
+	SIMPLE_TELEMETRY
+
+create 
+	make (a_service_name: READABLE_STRING_8)
+			-- Create telemetry for service.
+		require
+			name_not_empty: not a_service_name.is_empty
+		ensure
+			service_name_set: service_name.same_string (a_service_name)
+			enabled: is_enabled
+
+feature -- Access
+
+	generating_type: TYPE [detachable SIMPLE_TELEMETRY]
+			-- Type of current object
+			-- (type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generating_type_not_void: Result /= Void
+
+	generator: STRING_8
+			-- Name of current object's generating class
+			-- (base class of the type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generator_not_void: Result /= Void
+			generator_not_empty: not Result.is_empty
+
+	logger: SIMPLE_TELEMETRY_LOGGER
+			-- Logger with trace correlation.
+
+	meter: SIMPLE_METER
+			-- Meter for creating metrics.
+
+	service_name: STRING_8
+			-- Name of the service being instrumented.
+
+	tracer: SIMPLE_TRACER
+			-- Tracer for creating spans.
+	
+feature -- Comparison
+
+	frozen deep_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void
+			-- or attached to isomorphic object structures?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			shallow_implies_deep: standard_equal (a, b) implies Result
+			both_or_none_void: (a = Void) implies (Result = (b = Void))
+			same_type: (Result and (a /= Void)) implies (b /= Void and then a.same_type (b))
+			symmetric: Result implies deep_equal (b, a)
+
+	frozen equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached
+			-- to objects considered equal?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.is_equal (b))
+
+	frozen is_deep_equal alias "≡≡≡" (other: SIMPLE_TELEMETRY): BOOLEAN
+			-- Are `Current` and `other` attached to isomorphic object structures?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			shallow_implies_deep: standard_is_equal (other) implies Result
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.is_deep_equal (Current)
+
+	is_equal (other: SIMPLE_TELEMETRY): BOOLEAN
+			-- Is `other` attached to an object considered
+			-- equal to current object?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			symmetric: Result implies other ~ Current
+			consistent: standard_is_equal (other) implies Result
+
+	frozen standard_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached to
+			-- field-by-field identical objects of the same type?
+			-- Always uses default object comparison criterion.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.standard_is_equal (b))
+
+	frozen standard_is_equal alias "≜" (other: SIMPLE_TELEMETRY): BOOLEAN
+			-- Is `other` attached to an object of the same type
+			-- as current object, and field-by-field identical to it?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.standard_is_equal (Current)
+	
+feature -- Status report
+
+	conforms_to (other: ANY): BOOLEAN
+			-- Does type of current object conform to type
+			-- of `other` (as per Eiffel: The Language, chapter 13)?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+
+	same_type (other: ANY): BOOLEAN
+			-- Is type of current object identical to type of `other`?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			definition: Result = (conforms_to (other) and other.conforms_to (Current))
+	
+feature -- Duplication
+
+	copy (other: SIMPLE_TELEMETRY)
+			-- Update current object using fields of object attached
+			-- to `other`, so as to yield equal objects.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_equal: Current ~ other
+
+	frozen deep_copy (other: SIMPLE_TELEMETRY)
+			-- Effect equivalent to that of:
+			--		`copy` (`other` . `deep_twin`)
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			deep_equal: deep_equal (Current, other)
+
+	frozen deep_twin: SIMPLE_TELEMETRY
+			-- New object structure recursively duplicated from Current.
+			-- (from ANY)
+		ensure -- from ANY
+			deep_twin_not_void: Result /= Void
+			deep_equal: deep_equal (Current, Result)
+
+	frozen standard_copy (other: SIMPLE_TELEMETRY)
+			-- Copy every field of `other` onto corresponding field
+			-- of current object.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_standard_equal: standard_is_equal (other)
+
+	frozen standard_twin: SIMPLE_TELEMETRY
+			-- New object field-by-field identical to `other`.
+			-- Always uses default copying semantics.
+			-- (from ANY)
+		ensure -- from ANY
+			standard_twin_not_void: Result /= Void
+			equal: standard_equal (Result, Current)
+
+	frozen twin: SIMPLE_TELEMETRY
+			-- New object equal to `Current`
+			-- `twin` calls `copy`; to change copying/twinning semantics, redefine `copy`.
+			-- (from ANY)
+		ensure -- from ANY
+			twin_not_void: Result /= Void
+			is_equal: Result ~ Current
+	
+feature -- Basic operations
+
+	frozen default: detachable SIMPLE_TELEMETRY
+			-- Default value of object's type
+			-- (from ANY)
+
+	frozen default_pointer: POINTER
+			-- Default value of type `POINTER`
+			-- (Avoid the need to write `p`.`default` for
+			-- some `p` of type `POINTER`.)
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	default_rescue
+			-- Process exception for routines with no Rescue clause.
+			-- (Default: do nothing.)
+			-- (from ANY)
+
+	frozen do_nothing
+			-- Execute a null action.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+	
+feature -- Configuration
+
+	disable
+			-- Disable telemetry.
+		ensure
+			disabled: not is_enabled
+
+	enable
+			-- Enable telemetry.
+		ensure
+			enabled: is_enabled
+	
+feature -- Context Propagation
+
+	extract_context (a_traceparent: READABLE_STRING_8): SIMPLE_TRACE_CONTEXT
+			-- Extract trace context from incoming traceparent header.
+		require
+			valid_header: is_valid_traceparent (a_traceparent)
+		ensure
+			context_created: Result /= Void
+
+	inject_context (a_span: SIMPLE_SPAN): STRING_8
+			-- Get traceparent header for outgoing request.
+		require
+			span_attached: a_span /= Void
+		ensure
+			valid_header: is_valid_traceparent (Result)
+
+	is_valid_traceparent (a_header: READABLE_STRING_8): BOOLEAN
+			-- Is header in valid W3C traceparent format?
+	
+feature -- Convenience: Logging
+
+	error (a_message: STRING_8)
+			-- Log error message.
+
+	info (a_message: STRING_8)
+			-- Log info message.
+
+	log_debug (a_message: STRING_8)
+			-- Log debug message.
+
+	warn (a_message: STRING_8)
+			-- Log warning message.
+	
+feature -- Convenience: Metrics
+
+	increment_counter (a_name: READABLE_STRING_8)
+			-- Increment a counter by 1.
+		require
+			name_not_empty: not a_name.is_empty
+
+	new_counter (a_name: READABLE_STRING_8): SIMPLE_COUNTER
+			-- Create or get counter.
+		require
+			name_not_empty: not a_name.is_empty
+		ensure
+			counter_created: Result /= Void
+
+	new_gauge (a_name: READABLE_STRING_8): SIMPLE_GAUGE
+			-- Create or get gauge.
+		require
+			name_not_empty: not a_name.is_empty
+		ensure
+			gauge_created: Result /= Void
+
+	new_histogram (a_name: READABLE_STRING_8): SIMPLE_HISTOGRAM
+			-- Create or get histogram.
+		require
+			name_not_empty: not a_name.is_empty
+		ensure
+			histogram_created: Result /= Void
+
+	record_latency (a_name: READABLE_STRING_8; a_ms: REAL_64)
+			-- Record latency measurement.
+		require
+			name_not_empty: not a_name.is_empty
+	
+feature -- Convenience: Tracing
+
+	current_span: detachable SIMPLE_SPAN
+			-- Currently active span.
+
+	start_span (a_name: READABLE_STRING_8): SIMPLE_SPAN
+			-- Start a new span.
+		require
+			name_not_empty: not a_name.is_empty
+		ensure
+			span_created: Result /= Void
+
+	with_span (a_name: READABLE_STRING_8; a_action: PROCEDURE)
+			-- Execute action within an auto-closing span.
+		require
+			name_not_empty: not a_name.is_empty
+	
+feature -- Export
+
+	export_metrics: STRING_8
+			-- Export all metrics as text.
+
+	export_spans: ARRAYED_LIST [SIMPLE_SPAN]
+			-- Get all completed spans.
+	
+feature -- Output
+
+	Io: STD_FILES
+			-- Handle to standard file setup
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			io_not_void: Result /= Void
+
+	out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			out_not_void: Result /= Void
+
+	print (o: detachable ANY)
+			-- Write terse external representation of `o`
+			-- on standard output.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	frozen tagged_out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			tagged_out_not_void: Result /= Void
+	
+feature -- Platform
+
+	Operating_environment: OPERATING_ENVIRONMENT
+			-- Objects available from the operating system
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			operating_environment_not_void: Result /= Void
+	
+feature -- Statistics
+
+	active_span_count: INTEGER_32
+			-- Number of active spans.
+
+	completed_span_count: INTEGER_32
+			-- Number of completed spans.
+
+	counter_count: INTEGER_32
+			-- Number of counters.
+
+	gauge_count: INTEGER_32
+			-- Number of gauges.
+
+	histogram_count: INTEGER_32
+			-- Number of histograms.
+	
+feature -- Status
+
+	is_enabled: BOOLEAN
+			-- Is telemetry enabled?
+	
+invariant
+	service_name_not_empty: not service_name.is_empty
+	tracer_attached: tracer /= Void
+	meter_attached: meter /= Void
+	logger_attached: logger /= Void
+
+		-- from ANY
+	reflexive_equality: standard_is_equal (Current)
+	reflexive_conformance: conforms_to (Current)
+
+note
+	copyright: "Copyright (c) 2025, Larry Rix"
+	license: "MIT License"
+
+end -- class SIMPLE_TELEMETRY
+
